@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopper</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        a{
+            color:white;
+            text-decoration: none;
+        }
+        a:hover {
+            color:yellow;
+        }
+    </style>
+    <script type="text/javascript">
+        function LoadCategories(){
+            fetch("http://fakestoreapi.com/products/categories")   //fetching data from this link
+            .then(function(response){                              //getting the fetched data
+                 return response.json();                           //fetched data in json format
+            })
+            .then(function(categories){                            //dropdown from category 
+                categories.unshift("all");                         //ALL in dropdown heading
+                for(var category of categories){                      //dropdown data
+                    var option = document.createElement("option");
+                    option.text = category.toUpperCase();
+                    option.value = category;
+                    document.getElementById("lstCategories").appendChild(option);
+                }
+            })
+        }
+
+        function LoadProducts(url){                             //loading the product from the link
+            fetch(url)                                          
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(products){
+                document.querySelector("main").innerHTML="";
+                for(var product of products){
+                    var div = document.createElement("div");     //card type product list
+                    div.className = "card m-2 p-2";
+                    div.style.width = "200px";
+                    div.innerHTML = `
+                        <img src=${product.image} class="card-img-top" height="160">
+                        <div class="card-header" style="height:130px"><p>${product.title}</p></div>
+                        <div class="card-body">
+                            <dl>
+                                <dt>Price</dt>
+                                <dd>${product.price}</dd>
+                                <dt>Rating</dt>
+                                <dd><span class="bi bi-star-fill text-success"></span> ${product.rating.rate} [${product.rating.count}]
+                            </dl>
+                        </div>
+                        <div class="card-footer">
+                           <button onclick="AddClick(${product.id})" class="btn btn-danger w-100">
+                            <span class="bi bi-cart4"></span>
+                            Add to Cart
+                            </button>
+                        </div>
+                    `;
+                    document.querySelector("main").appendChild(div);          //body
+                }
+            })
+        }
+
+        function bodyload(){
+            LoadCategories();
+            LoadProducts("http://fakestoreapi.com/products");   //loading the product from the link
+            GetCartItemsCount();                                //badge cart
+        }
+        function CategoryChanged(){                                           //dropdown list selection
+            var categoryName = document.getElementById("lstCategories").value;
+            if(categoryName=="all") {
+                LoadProducts("http://fakestoreapi.com/products");             //select all
+            } else {
+                LoadProducts(`http://fakestoreapi.com/products/category/${categoryName}`);  //select particular name from list
+            }
+        }
+        function NavClicked(categoryName){          //this is navbar a-link selection
+             if(categoryName=="all"){
+                 LoadProducts("http://fakestoreapi.com/products");
+             } else {
+                 LoadProducts(`http://fakestoreapi.com/products/category/${categoryName}`);
+             }
+        }
+        var cartItems = [];                       //cartitem badge
+        function GetCartItemsCount(){
+            document.getElementById("lblCount").innerHTML = cartItems.length;       
+        }
+        function AddClick(id) {                   //add data when add cart button clicked
+            fetch(`http://fakestoreapi.com/products/${id}`)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(product){
+                cartItems.push(product);               //adding push used
+                alert(`${product.title}\nAdded to Cart`);
+                GetCartItemsCount();
+            })
+        }
+    </script>
+</head>
+<body class="container-fluid" onload="bodyload()">
+    <header class="p-2 mt-2 d-flex justify-content-between bg-primary text-white">
+        <div>
+            <h3>Shopper.</h3>
+        </div>
+        <div>
+            <span class="me-2"><a href="javascript:NavClicked('all')">Home</a></span>
+            <span class="me-2"><a href="javascript:NavClicked('electronics')">Electronics</a></span>
+            <span class="me-2"><a href="javascript:NavClicked('jewelery')">Jewelery</a></span>
+            <span class="me-2"><a>Men's Fashion</a></span>
+            <span class="me-2"><a>Women's Fashion</a></span>  
+        </div>
+        <div>
+            <span class="me-2"><a><span class="bi bi-person"></span></a></span>
+            <span class="me-2"><a><span class="bi bi-heart"></span></a></span>
+            <span class="me-2 position-relative"><a href="#cart" data-bs-toggle="modal"><span class="bi bi-cart3"></span> <span class="badge bg-danger rounded rounded-circle position-absolute" id="lblCount"></span> </a></span>
+            <div class="modal fade" id="cart">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="text-dark">Your Cart Items</h2>
+                            <button class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Preview</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="mt-2 row">
+        <div class="carousel slide carousel-dark" id="banner" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active" data-bs-interval="3000">
+                    <img src="public/images/slide1.jpg" style="height: 250px;" class="w-100 d-block">
+                </div>
+                <div class="carousel-item" data-bs-interval="3000">
+                    <img src="../public/images/slide2.jpg" style="height: 250px;" class="w-100 d-block">
+                </div>
+                <div class="carousel-item" data-bs-interval="3000">
+                    <img src="../public/images/amazonback.jpg" style="height: 250px;" class="w-100 d-block">
+                </div>
+            </div>
+            <button data-bs-slide="prev" data-bs-target="#banner" class="carousel-control-prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button data-bs-slide="next" data-bs-target="#banner" class="carousel-control-next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+        <nav class="col-2">
+            <div>
+                <label class="form-label">Select Category</label>
+                <div>
+                    <select id="lstCategories" onchange="CategoryChanged()" class="form-select">
+
+                    </select>
+                </div>
+            </div>
+        </nav>
+        <main class="col-10 d-flex flex-wrap overflow-auto" style="height:500px">
+
+        </main>
+    </section>
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+</body>
+</html>
